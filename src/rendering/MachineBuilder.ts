@@ -169,11 +169,15 @@ export class MachineBuilder {
     upperTier.receiveShadow = true;
     this.scene.add(upperTier);
 
-    // Physics collider for upper tier
-    this.physics.createStaticBody(
-      { x: 0, y: upperTierHeight, z: -depth / 2 + upperTierDepth / 2 },
-      this.physics.createCuboidCollider(width / 2, 0.1, upperTierDepth / 2)
-    );
+    // Physics collider for upper tier (skip if physics not initialized)
+    try {
+      this.physics.createStaticBody(
+        { x: 0, y: upperTierHeight, z: -depth / 2 + upperTierDepth / 2 },
+        this.physics.createCuboidCollider(width / 2, 0.1, upperTierDepth / 2)
+      );
+    } catch (e) {
+      // Skip
+    }
 
     // Lower tier (pusher area)
     const lowerTierDepth = depth * 0.6;
@@ -184,11 +188,15 @@ export class MachineBuilder {
     lowerTier.receiveShadow = true;
     this.scene.add(lowerTier);
 
-    // Physics collider for lower tier
-    this.physics.createStaticBody(
-      { x: 0, y: lowerTierHeight, z: depth / 2 - lowerTierDepth / 2 },
-      this.physics.createCuboidCollider(width / 2, 0.1, lowerTierDepth / 2)
-    );
+    // Physics collider for lower tier (skip if physics not initialized)
+    try {
+      this.physics.createStaticBody(
+        { x: 0, y: lowerTierHeight, z: depth / 2 - lowerTierDepth / 2 },
+        this.physics.createCuboidCollider(width / 2, 0.1, lowerTierDepth / 2)
+      );
+    } catch (e) {
+      // Skip
+    }
 
     // Ramp between tiers
     this.buildRamp(upperTierHeight, lowerTierHeight, width, -depth / 2 + upperTierDepth);
