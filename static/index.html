@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoinSlosh - 3D Coin Pusher</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #1a0033 0%, #330066 50%, #1a0033 100%);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+    
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    
+    #ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+    
+    /* Coin Counter */
+    
+    #coin-display {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #ffed4e;
+      text-shadow: 
+        0 0 10px #ff00ff,
+        0 0 20px #ff00ff,
+        0 0 30px #ff00ff,
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 2px;
+    }
+    
+    #coin-label {
+      font-size: 1rem;
+      color: #ff00ff;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    
+    /* Cooldown Indicator */
+    
+    #cooldown-indicator {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.2rem;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      display: none;
+    }
+    
+    /* Loading Screen */
+    
+    #loading-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a0033 0%, #330066 50%, #1a0033 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    #loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    #loading-text {
+      font-size: 3rem;
+      color: #ffed4e;
+      text-shadow: 
+        0 0 20px #ff00ff,
+        0 0 40px #ff00ff;
+      margin-bottom: 30px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    #loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 0, 255, 0.3);
+      border-top-color: #ff00ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Mobile Responsive */
+    
+    @media (max-width: 768px) {
+      #coin-display {
+        top: 10px;
+        left: 10px;
+        font-size: 1.8rem;
+      }
+      
+      #coin-label {
+        font-size: 0.8rem;
+      }
+      
+      #cooldown-indicator {
+        bottom: 20px;
+        font-size: 1rem;
+      }
+      
+      #loading-text {
+        font-size: 2rem;
+      }
+    }
+    
+    /* Error Message */
+    
+    #error-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 0, 0, 0.9);
+      color: white;
+      padding: 20px 40px;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      text-align: center;
+      display: none;
+      pointer-events: all;
+      z-index: 200;
+    }
+    
+    #error-message.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translate(-50%, -60%);
+        opacity: 0;
+      }
+      to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+      }
+    }
+    
+    /* Help Button */
+    
+    #help-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 0, 255, 0.3);
+      border: 2px solid #ff00ff;
+      color: #ff00ff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      pointer-events: all;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    #help-button:hover {
+      background: rgba(255, 0, 255, 0.6);
+      transform: scale(1.1);
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/main-fQVDdzHv.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/three-DDfY4BRC.js">
+  <link rel="modulepreload" crossorigin href="/assets/rapier-DUEE_sC_.js">
+  <link rel="stylesheet" crossorigin href="/assets/main-_uJ5n15K.css">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div id="loading-text">COINSLOSH</div>
+    <div id="loading-spinner"></div>
+  </div>
+  
+  <!-- Game Canvas -->
+  <canvas id="gameCanvas"></canvas>
+  
+  <!-- UI Overlay -->
+  <div id="ui-overlay">
+    <!-- Coin Display -->
+    <div id="coin-display">
+      <div id="coin-label">COINS</div>
+      <div id="coin-count">500</div>
+    </div>
+    
+    <!-- Cooldown Indicator -->
+    <div id="cooldown-indicator">
+      Cooldown: <span id="cooldown-time">1.0s</span>
+    </div>
+    
+    <!-- Error Message -->
+    <div id="error-message"></div>
+    
+    <!-- Help Button -->
+    <div id="help-button" title="Help">?</div>
+  </div>
+  
+</body>
+</html>

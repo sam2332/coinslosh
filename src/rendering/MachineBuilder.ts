@@ -101,11 +101,15 @@ export class MachineBuilder {
     leftWall.receiveShadow = true;
     this.scene.add(leftWall);
 
-    // Physics collider for left wall
-    this.physics.createStaticBody(
-      { x: -width / 2, y: wallHeight / 2, z: 0 },
-      this.physics.createCuboidCollider(wallThickness / 2, wallHeight / 2, depth / 2)
-    );
+    // Physics collider for left wall (skip if physics not initialized)
+    try {
+      this.physics.createStaticBody(
+        { x: -width / 2, y: wallHeight / 2, z: 0 },
+        this.physics.createCuboidCollider(wallThickness / 2, wallHeight / 2, depth / 2)
+      );
+    } catch (e) {
+      console.log('[Machine] Skipping physics collider (physics not initialized)');
+    }
 
     // Right wall
     const rightWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
@@ -114,11 +118,15 @@ export class MachineBuilder {
     rightWall.receiveShadow = true;
     this.scene.add(rightWall);
 
-    // Physics collider for right wall
-    this.physics.createStaticBody(
-      { x: width / 2, y: wallHeight / 2, z: 0 },
-      this.physics.createCuboidCollider(wallThickness / 2, wallHeight / 2, depth / 2)
-    );
+    // Physics collider for right wall (skip if physics not initialized)
+    try {
+      this.physics.createStaticBody(
+        { x: width / 2, y: wallHeight / 2, z: 0 },
+        this.physics.createCuboidCollider(wallThickness / 2, wallHeight / 2, depth / 2)
+      );
+    } catch (e) {
+      // Skip
+    }
 
     // Back wall
     const backWallGeometry = new THREE.BoxGeometry(width, wallHeight, wallThickness);
@@ -128,11 +136,15 @@ export class MachineBuilder {
     backWall.receiveShadow = true;
     this.scene.add(backWall);
 
-    // Physics collider for back wall
-    this.physics.createStaticBody(
-      { x: 0, y: wallHeight / 2, z: -depth / 2 },
-      this.physics.createCuboidCollider(width / 2, wallHeight / 2, wallThickness / 2)
-    );
+    // Physics collider for back wall (skip if physics not initialized)
+    try {
+      this.physics.createStaticBody(
+        { x: 0, y: wallHeight / 2, z: -depth / 2 },
+        this.physics.createCuboidCollider(width / 2, wallHeight / 2, wallThickness / 2)
+      );
+    } catch (e) {
+      // Skip
+    }
   }
 
   /**

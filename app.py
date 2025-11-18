@@ -2,12 +2,16 @@
 CoinSlosh Flask Server
 Serves static assets and HTML template during development
 """
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, send_from_directory
 import os
+import mimetypes
 
-app = Flask(__name__, 
-            template_folder='.',
-            static_folder='static')
+# Add proper MIME types
+mimetypes.add_type('application/javascript', '.js')
+mimetypes.add_type('text/css', '.css')
+mimetypes.add_type('application/wasm', '.wasm')
+
+app = Flask(__name__, static_folder='static', static_url_path='')
 
 # Enable CORS for development
 from flask_cors import CORS
@@ -16,17 +20,12 @@ CORS(app)
 @app.route('/')
 def index():
     """Serve the main game HTML page"""
-    return render_template('index.html')
+    return send_from_directory('static', 'index.html')
 
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Serve static files (JS bundles, CSS)"""
-    return send_from_directory('static', filename)
-
-@app.route('/public/<path:filename>')
-def serve_public(filename):
-    """Serve public assets (images, fonts)"""
-    return send_from_directory('public', filename)
+@app.route('/<path:path>')
+def serve_static(path):
+    """Serve all static files"""
+    return send_from_directory('static', path)
 
 @app.route('/health')
 def health():
@@ -37,7 +36,6 @@ if __name__ == '__main__':
     # Create directories if they don't exist
     os.makedirs('static', exist_ok=True)
     os.makedirs('public', exist_ok=True)
-    os.makedirs('templates', exist_ok=True)
     
     print("🎰 CoinSlosh Server Starting...")
     print("📂 Static files: /static")

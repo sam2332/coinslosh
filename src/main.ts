@@ -5,26 +5,36 @@ import './styles.css';
  * CoinSlosh Entry Point
  */
 
+console.log('📦 main.ts loaded!');
+
 // Wait for DOM to be ready
 window.addEventListener('DOMContentLoaded', async () => {
   console.log('🎰 CoinSlosh Starting...');
+  console.log('🌐 DOM loaded');
 
   // Get canvas element
   const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
   if (!canvas) {
-    console.error('Canvas element not found!');
+    console.error('❌ Canvas element not found!');
     return;
   }
+  console.log('✅ Canvas found:', canvas);
 
   // Check WebGL support
-  if (!canvas.getContext('webgl2') && !canvas.getContext('webgl')) {
+  const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+  if (!gl) {
     alert('WebGL not supported. Please use a modern browser.');
+    console.error('❌ WebGL not supported');
     return;
   }
+  console.log('✅ WebGL supported');
 
   try {
     // Create and initialize game
+    console.log('🎮 Creating GameManager...');
     const game = new GameManager();
+    
+    console.log('🔧 Initializing game...');
     await game.initialize(canvas);
 
     // Expose game instance for debugging
@@ -32,7 +42,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     console.log('🎮 CoinSlosh ready! Click drop slots to play.');
   } catch (error) {
-    console.error('Failed to start game:', error);
+    console.error('❌ Failed to start game:', error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
     alert('Failed to initialize game. Please refresh and try again.');
   }
 });

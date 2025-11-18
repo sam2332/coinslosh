@@ -5,7 +5,6 @@ import RAPIER from '@dimforge/rapier3d';
  */
 export class PhysicsManager {
   public world: RAPIER.World | null = null;
-  private RAPIER: typeof RAPIER | null = null;
   private accumulator: number = 0;
   private readonly fixedTimeStep: number = 1 / 60; // 60 Hz
 
@@ -16,12 +15,9 @@ export class PhysicsManager {
     console.log('[Physics] Initializing Rapier3D...');
     
     try {
-      // Import Rapier (WASM auto-initializes in newer versions)
-      this.RAPIER = RAPIER;
-
       // Create physics world with gravity
       const gravity = { x: 0.0, y: -9.81, z: 0.0 };
-      this.world = new this.RAPIER.World(gravity);
+      this.world = new RAPIER.World(gravity);
 
       console.log('[Physics] Rapier3D initialized successfully');
     } catch (error) {
@@ -53,11 +49,11 @@ export class PhysicsManager {
     position: { x: number; y: number; z: number },
     shape: RAPIER.ColliderDesc
   ): RAPIER.RigidBody {
-    if (!this.world || !this.RAPIER) {
+    if (!this.world) {
       throw new Error('Physics not initialized');
     }
 
-    const rigidBodyDesc = this.RAPIER.RigidBodyDesc.dynamic()
+    const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(position.x, position.y, position.z);
 
     const rigidBody = this.world.createRigidBody(rigidBodyDesc);
@@ -73,11 +69,11 @@ export class PhysicsManager {
     position: { x: number; y: number; z: number },
     shape: RAPIER.ColliderDesc
   ): RAPIER.RigidBody {
-    if (!this.world || !this.RAPIER) {
+    if (!this.world) {
       throw new Error('Physics not initialized');
     }
 
-    const rigidBodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased()
+    const rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
       .setTranslation(position.x, position.y, position.z);
 
     const rigidBody = this.world.createRigidBody(rigidBodyDesc);
@@ -93,11 +89,11 @@ export class PhysicsManager {
     position: { x: number; y: number; z: number },
     shape: RAPIER.ColliderDesc
   ): void {
-    if (!this.world || !this.RAPIER) {
+    if (!this.world) {
       throw new Error('Physics not initialized');
     }
 
-    const rigidBodyDesc = this.RAPIER.RigidBodyDesc.fixed()
+    const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed()
       .setTranslation(position.x, position.y, position.z);
 
     const rigidBody = this.world.createRigidBody(rigidBodyDesc);
@@ -113,11 +109,7 @@ export class PhysicsManager {
     friction: number = 0.4,
     restitution: number = 0.2
   ): RAPIER.ColliderDesc {
-    if (!this.RAPIER) {
-      throw new Error('Physics not initialized');
-    }
-
-    return this.RAPIER.ColliderDesc.cylinder(halfHeight, radius)
+    return RAPIER.ColliderDesc.cylinder(halfHeight, radius)
       .setFriction(friction)
       .setRestitution(restitution);
   }
@@ -132,11 +124,7 @@ export class PhysicsManager {
     friction: number = 0.5,
     restitution: number = 0.1
   ): RAPIER.ColliderDesc {
-    if (!this.RAPIER) {
-      throw new Error('Physics not initialized');
-    }
-
-    return this.RAPIER.ColliderDesc.cuboid(halfWidth, halfHeight, halfDepth)
+    return RAPIER.ColliderDesc.cuboid(halfWidth, halfHeight, halfDepth)
       .setFriction(friction)
       .setRestitution(restitution);
   }
@@ -153,13 +141,6 @@ export class PhysicsManager {
    * Check if physics is ready
    */
   public isReady(): boolean {
-    return this.world !== null && this.RAPIER !== null;
-  }
-
-  /**
-   * Get Rapier API (for advanced usage)
-   */
-  public getRapier(): typeof RAPIER | null {
-    return this.RAPIER;
+    return this.world !== null;
   }
 }

@@ -26,26 +26,30 @@ export class GameManager {
 
     try {
       // Initialize UI first (for loading screen)
+      console.log('[Game] Step 1: UI Controller');
       this.uiController = new UIController();
 
       // Initialize state manager
+      console.log('[Game] Step 2: State Manager');
       this.stateManager = new StateManager();
       this.stateManager.initialize();
       this.uiController.updateCoinCount(this.stateManager.getBalance());
 
       // Initialize scene
-      console.log('[Game] Setting up Three.js scene...');
+      console.log('[Game] Step 3: Three.js Scene');
       this.sceneManager = new SceneManager(canvas);
 
       // Initialize physics
-      console.log('[Game] Loading Rapier3D physics engine...');
+      console.log('[Game] Step 4: Rapier3D Physics (TEMPORARILY DISABLED)');
       this.physicsManager = new PhysicsManager();
-      await this.physicsManager.initialize();
+      // await this.physicsManager.initialize();
+      console.log('[Game] Physics initialization skipped for now');
 
-      // Build machine geometry
-      console.log('[Game] Building machine...');
+      // Build machine geometry (visual only, physics colliders disabled)
+      console.log('[Game] Step 5: Building Machine (visual only)');
       const machineBuilder = new MachineBuilder(this.sceneManager.scene, this.physicsManager);
       machineBuilder.build();
+      console.log('[Game] Machine geometry built');
 
       // TODO: Setup coin system
       // TODO: Setup input handlers
@@ -56,8 +60,11 @@ export class GameManager {
       // Start game loop
       this.start();
     } catch (error) {
-      console.error('[Game] Initialization failed:', error);
-      this.uiController.showError('Failed to initialize game. Please refresh.');
+      console.error('[Game] ❌ Initialization failed at step:', error);
+      console.error('[Game] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      if (this.uiController) {
+        this.uiController.showError('Failed to initialize game. Check console for details.');
+      }
       throw error;
     }
   }
