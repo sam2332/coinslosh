@@ -1,15 +1,15 @@
 import * as THREE from 'three';
 import { MACHINE_CONFIG } from '../config/constants';
-import type { PhysicsManager } from '../physics/PhysicsManager';
+import type { SimplePhysics } from '../physics/SimplePhysics';
 
 /**
  * Builds the 3D coin pusher machine geometry and physics
  */
 export class MachineBuilder {
   private scene: THREE.Scene;
-  private physics: PhysicsManager;
+  private physics: SimplePhysics;
 
-  constructor(scene: THREE.Scene, physics: PhysicsManager) {
+  constructor(scene: THREE.Scene, physics: SimplePhysics) {
     this.scene = scene;
     this.physics = physics;
   }
@@ -25,7 +25,26 @@ export class MachineBuilder {
     this.buildPlatforms();
     this.buildDropSlotMarkers();
 
+    // Setup physics boundaries
+    this.setupPhysics();
+
     console.log('[Machine] Machine built successfully');
+  }
+
+  /**
+   * Setup physics platforms and boundaries
+   */
+  private setupPhysics(): void {
+    const { width, depth, upperTierHeight, lowerTierHeight } = MACHINE_CONFIG.dimensions;
+
+    // Add platform levels
+    this.physics.addPlatform(upperTierHeight);
+    this.physics.addPlatform(lowerTierHeight);
+
+    // Add wall boundaries
+    this.physics.addWalls(-width / 2, width / 2, -depth / 2, depth / 2);
+
+    console.log('[Machine] Physics boundaries configured');
   }
 
   /**
@@ -101,32 +120,12 @@ export class MachineBuilder {
     leftWall.receiveShadow = true;
     this.scene.add(leftWall);
 
-    // Physics collider for left wall (skip if physics not initialized)
-    try {
-      this.physics.createStaticBody(
-        { x: -width / 2, y: wallHeight / 2, z: 0 },
-        this.physics.createCuboidCollider(wallThickness / 2, wallHeight / 2, depth / 2)
-      );
-    } catch (e) {
-      console.log('[Machine] Skipping physics collider (physics not initialized)');
-    }
-
     // Right wall
     const rightWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
     rightWall.position.set(width / 2, wallHeight / 2, 0);
     rightWall.castShadow = true;
     rightWall.receiveShadow = true;
     this.scene.add(rightWall);
-
-    // Physics collider for right wall (skip if physics not initialized)
-    try {
-      this.physics.createStaticBody(
-        { x: width / 2, y: wallHeight / 2, z: 0 },
-        this.physics.createCuboidCollider(wallThickness / 2, wallHeight / 2, depth / 2)
-      );
-    } catch (e) {
-      // Skip
-    }
 
     // Back wall
     const backWallGeometry = new THREE.BoxGeometry(width, wallHeight, wallThickness);
@@ -135,16 +134,6 @@ export class MachineBuilder {
     backWall.castShadow = true;
     backWall.receiveShadow = true;
     this.scene.add(backWall);
-
-    // Physics collider for back wall (skip if physics not initialized)
-    try {
-      this.physics.createStaticBody(
-        { x: 0, y: wallHeight / 2, z: -depth / 2 },
-        this.physics.createCuboidCollider(width / 2, wallHeight / 2, wallThickness / 2)
-      );
-    } catch (e) {
-      // Skip
-    }
   }
 
   /**
@@ -169,16 +158,6 @@ export class MachineBuilder {
     upperTier.receiveShadow = true;
     this.scene.add(upperTier);
 
-    // Physics collider for upper tier (skip if physics not initialized)
-    try {
-      this.physics.createStaticBody(
-        { x: 0, y: upperTierHeight, z: -depth / 2 + upperTierDepth / 2 },
-        this.physics.createCuboidCollider(width / 2, 0.1, upperTierDepth / 2)
-      );
-    } catch (e) {
-      // Skip
-    }
-
     // Lower tier (pusher area)
     const lowerTierDepth = depth * 0.6;
     const lowerTierGeometry = new THREE.BoxGeometry(width, 0.2, lowerTierDepth);
@@ -187,16 +166,6 @@ export class MachineBuilder {
     lowerTier.castShadow = true;
     lowerTier.receiveShadow = true;
     this.scene.add(lowerTier);
-
-    // Physics collider for lower tier (skip if physics not initialized)
-    try {
-      this.physics.createStaticBody(
-        { x: 0, y: lowerTierHeight, z: depth / 2 - lowerTierDepth / 2 },
-        this.physics.createCuboidCollider(width / 2, 0.1, lowerTierDepth / 2)
-      );
-    } catch (e) {
-      // Skip
-    }
 
     // Ramp between tiers
     this.buildRamp(upperTierHeight, lowerTierHeight, width, -depth / 2 + upperTierDepth);

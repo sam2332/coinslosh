@@ -1,8 +1,10 @@
 import { SceneManager } from '../rendering/SceneManager';
 import { MachineBuilder } from '../rendering/MachineBuilder';
-import { PhysicsManager } from '../physics/PhysicsManager';
+import { SimplePhysics } from '../physics/SimplePhysics';
 import { StateManager } from './StateManager';
 import { UIController } from '../ui/UIController';
+import { CoinManager } from './CoinManager';
+import { InputHandler } from '../input/InputHandler';
 import { GAME_CONFIG } from '../config/constants';
 
 /**
@@ -10,9 +12,11 @@ import { GAME_CONFIG } from '../config/constants';
  */
 export class GameManager {
   private sceneManager!: SceneManager;
-  private physicsManager!: PhysicsManager;
+  private physics!: SimplePhysics;
   private stateManager!: StateManager;
   private uiController!: UIController;
+  private coinManager!: CoinManager;
+  private _inputHandler!: InputHandler; // Underscore indicates it's used for side effects
 
   private isRunning: boolean = false;
   private lastTime: number = 0;
@@ -39,20 +43,26 @@ export class GameManager {
       console.log('[Game] Step 3: Three.js Scene');
       this.sceneManager = new SceneManager(canvas);
 
-      // Initialize physics
-      console.log('[Game] Step 4: Rapier3D Physics (TEMPORARILY DISABLED)');
-      this.physicsManager = new PhysicsManager();
-      // await this.physicsManager.initialize();
-      console.log('[Game] Physics initialization skipped for now');
+      // Initialize simple physics
+      console.log('[Game] Step 4: Simple Physics Engine');
+      this.physics = new SimplePhysics();
+      console.log('[Game] Physics initialized');
 
-      // Build machine geometry (visual only, physics colliders disabled)
-      console.log('[Game] Step 5: Building Machine (visual only)');
-      const machineBuilder = new MachineBuilder(this.sceneManager.scene, this.physicsManager);
+      // Build machine geometry
+      console.log('[Game] Step 5: Building Machine');
+      const machineBuilder = new MachineBuilder(this.sceneManager.scene, this.physics);
       machineBuilder.build();
-      console.log('[Game] Machine geometry built');
+      console.log('[Game] Machine built');
 
-      // TODO: Setup coin system
-      // TODO: Setup input handlers
+      // Setup coin system
+      console.log('[Game] Step 6: Coin System');
+      this.coinManager = new CoinManager(this.sceneManager.scene, this.physics);
+      console.log('[Game] Coin system ready');
+
+      // Setup input handlers
+      console.log('[Game] Step 7: Input Handlers');
+      this._inputHandler = new InputHandler(canvas, this.sceneManager.camera, this.sceneManager.scene, this);
+      console.log('[Game] Input handlers ready');
 
       console.log('[Game] ✅ Initialization complete!');
       this.uiController.hideLoadingScreen();
@@ -101,13 +111,26 @@ export class GameManager {
     this.updateCooldown();
 
     // Update physics
-    if (this.physicsManager.isReady()) {
-      this.physicsManager.step(deltaTime);
+    if (this.physics) {
+      this.physics.step(deltaTime);
+    }
+
+    // Check for coins falling off edges
+    if (this.coinManager) {
+      const { front, sides } = this.coinManager.checkEdges();
+      
+      // Award coins that fell off front
+      if (front.length > 0) {
+        this.awardCoins(front.length * 10);
+      }
+      
+      // Lose coins that fell off sides
+      if (sides.length > 0) {
+        console.log(`[Game] Lost ${sides.length} coins off the sides`);
+      }
     }
 
     // TODO: Update pusher animation
-    // TODO: Update coins
-    // TODO: Check edge collisions
 
     // Render scene
     this.sceneManager.render();
@@ -179,7 +202,10 @@ export class GameManager {
     // Start cooldown
     this.startCooldown();
 
-    // TODO: Spawn coin at slot position
+    // Spawn coin at slot position
+    if (this.coinManager) {
+      this.coinManager.spawnCoin(slotId);
+    }
 
     return true;
   }
@@ -202,10 +228,10 @@ export class GameManager {
   }
 
   /**
-   * Get physics manager (for external access)
+   * Get physics engine (for external access)
    */
-  public getPhysicsManager(): PhysicsManager {
-    return this.physicsManager;
+  public getPhysics(): SimplePhysics {
+    return this.physics;
   }
 
   /**

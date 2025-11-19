@@ -18,6 +18,9 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html')
       },
       output: {
+        entryFileNames: 'assets/[name].js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/[name].[ext]',
         manualChunks: {
           three: ['three'],
           rapier: ['@dimforge/rapier3d']
